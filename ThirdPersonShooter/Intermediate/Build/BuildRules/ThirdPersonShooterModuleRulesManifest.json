@@ -1,0 +1,8 @@
+{
+	"SourceFiles": [
+		"C:\\Documents\\UnrealEngineProjects\\ThirdPersonShooter\\ThirdPersonShooter\\Source\\ThirdPersonShooter\\ThirdPersonShooter.Build.cs",
+		"C:\\Documents\\UnrealEngineProjects\\ThirdPersonShooter\\ThirdPersonShooter\\Source\\ThirdPersonShooter.Target.cs",
+		"C:\\Documents\\UnrealEngineProjects\\ThirdPersonShooter\\ThirdPersonShooter\\Source\\ThirdPersonShooterEditor.Target.cs"
+	],
+	"EngineVersion": "5.2.1"
+}

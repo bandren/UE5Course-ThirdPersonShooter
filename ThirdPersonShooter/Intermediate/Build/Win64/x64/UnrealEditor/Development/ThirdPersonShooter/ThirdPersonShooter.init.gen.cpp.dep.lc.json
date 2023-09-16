@@ -1,0 +1,13 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\documents\\unrealengineprojects\\thirdpersonshooter\\thirdpersonshooter\\intermediate\\build\\win64\\unrealeditor\\inc\\thirdpersonshooter\\uht\\thirdpersonshooter.init.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "c:\\documents\\unrealengineprojects\\thirdpersonshooter\\thirdpersonshooter\\intermediate\\build\\win64\\x64\\thirdpersonshootereditor\\development\\engine\\sharedpch.engine.shadowerrors.inclorderunreal5_1.h.pch",
+        "Includes": [
+            "c:\\documents\\unrealengineprojects\\thirdpersonshooter\\thirdpersonshooter\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\thirdpersonshooter\\definitions.thirdpersonshooter.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

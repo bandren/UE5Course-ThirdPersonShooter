@@ -1,0 +1,14 @@
+{
+	"Targets": [
+		{
+			"Name": "ThirdPersonShooter",
+			"Path": "C:\\Documents\\UnrealEngineProjects\\ThirdPersonShooter\\ThirdPersonShooter\\Source\\ThirdPersonShooter.Target.cs",
+			"Type": "Game"
+		},
+		{
+			"Name": "ThirdPersonShooterEditor",
+			"Path": "C:\\Documents\\UnrealEngineProjects\\ThirdPersonShooter\\ThirdPersonShooter\\Source\\ThirdPersonShooterEditor.Target.cs",
+			"Type": "Editor"
+		}
+	]
+}
