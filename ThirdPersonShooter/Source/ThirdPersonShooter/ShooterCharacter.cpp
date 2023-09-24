@@ -23,6 +23,14 @@ AShooterCharacter::AShooterCharacter()
 {
 	base_yaw_rate = 45.0f;
 	base_pitch_rate = 45.0f;
+	is_aiming = false;
+	camera_default_fov = 0.0f; /* Set in begin play to actual default */
+	camera_fov_interp_speed = 20.0f;
+	shoot_time_duration = 0.05f;
+	is_firing = false;
+	automatic_fire_rate = 0.1f;
+	should_fire = true;
+	b_fire_button_pressed = false;
 
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -33,7 +41,7 @@ AShooterCharacter::AShooterCharacter()
 	camera_boom->SetupAttachment(RootComponent);
 	camera_boom->TargetArmLength = 300.0f;       /* Follows this distance behind the character */
 	camera_boom->bUsePawnControlRotation = true; /* Rotate arm based on controller             */
-	camera_boom->SocketOffset = FVector(0.0f, 50.0f, 50.0f);
+	camera_boom->SocketOffset = default_boom_offset;
 
 	/* Create a follow camera
 	 */
@@ -70,6 +78,43 @@ void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	/* Zoom in when aiming
+	 */
+	if( is_aiming ) {
+		camera_current_fov = FMath::FInterpTo(camera_current_fov,
+											  camera_zoomed_fov,
+											  DeltaTime,
+											  camera_fov_interp_speed);
+		current_boom_offset = FMath::VInterpTo(current_boom_offset,
+											   aiming_boom_offset,
+											   DeltaTime,
+											   camera_fov_interp_speed);
+	}
+	else {
+		camera_current_fov = FMath::FInterpTo(camera_current_fov,
+											  camera_default_fov,
+											  DeltaTime,
+											  camera_fov_interp_speed);
+		current_boom_offset = FMath::VInterpTo(current_boom_offset,
+											   default_boom_offset,
+											   DeltaTime,
+											   camera_fov_interp_speed);
+	}
+	get_follow_camera()->SetFieldOfView(camera_current_fov);
+	camera_boom->SocketOffset = current_boom_offset;
+
+	/* Change look sensitivity when aiming
+	 */
+	if( get_is_aiming() ) {
+		base_yaw_rate = aim_yaw_rate;
+		base_pitch_rate = aim_pitch_rate;
+	}
+	else {
+		base_yaw_rate = hip_yaw_rate;
+		base_pitch_rate = hip_pitch_rate;
+	}
+
+	calculate_crosshair_spread(DeltaTime);
 }
 
 /******************************************************************************
@@ -84,11 +129,20 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("MoveRight", this, &AShooterCharacter::move_right);
 	PlayerInputComponent->BindAxis("YawRate", this, &AShooterCharacter::set_yaw_rate);
 	PlayerInputComponent->BindAxis("PitchRate", this, &AShooterCharacter::set_pitch_rate);
-	PlayerInputComponent->BindAxis("Yaw", this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("Pitch", this, &APawn::AddControllerPitchInput);
+	PlayerInputComponent->BindAxis("Yaw", this, &AShooterCharacter::set_yaw);
+	PlayerInputComponent->BindAxis("Pitch", this, &AShooterCharacter::set_pitch);
 	PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Released, this, &ACharacter::StopJumping);
-	PlayerInputComponent->BindAction("FireButton", EInputEvent::IE_Pressed, this, &AShooterCharacter::fire_weapon);
+	PlayerInputComponent->BindAction("FireButton", EInputEvent::IE_Pressed, this, &AShooterCharacter::fire_button_pressed);
+	PlayerInputComponent->BindAction("FireButton", EInputEvent::IE_Released, this, &AShooterCharacter::fire_button_released);
+	PlayerInputComponent->BindAction("AimButton", EInputEvent::IE_Pressed, this, &AShooterCharacter::aim_button_pressed);
+	PlayerInputComponent->BindAction("AimButton", EInputEvent::IE_Released, this, &AShooterCharacter::aim_button_released);
+}
+
+/******************************************************************************
+ */
+float AShooterCharacter::get_crosshair_spread_multiplier() const {
+	return crosshair_spread_multiplier;
 }
 
 /******************************************************************************/
@@ -101,6 +155,12 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 void AShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	current_boom_offset = default_boom_offset;
+	if( get_follow_camera() != nullptr ) {
+		camera_default_fov = get_follow_camera()->FieldOfView;
+		camera_current_fov = camera_default_fov;
+	}
 }
 
 /******************************************************************************
@@ -154,9 +214,31 @@ void AShooterCharacter::set_yaw_rate(float rate)
 
 /******************************************************************************
  */
-void AShooterCharacter::set_pitch_rate(float rate)
-{
+void AShooterCharacter::set_pitch_rate(float rate) {
 	AddControllerPitchInput(rate * base_yaw_rate * GetWorld()->GetDeltaSeconds());
+}
+
+
+/******************************************************************************
+ * Yaw is normalized from [0,1]
+ */
+void AShooterCharacter::set_yaw(float yaw) {
+	float yaw_scale_factor = hip_yaw_scale;
+	if( get_is_aiming() ) {
+		yaw_scale_factor = aim_yaw_scale;
+	}
+	AddControllerYawInput(yaw * yaw_scale_factor);
+}
+
+/******************************************************************************
+ * Pitch is normalized from [0,1]
+ */
+void AShooterCharacter::set_pitch(float pitch) {
+	float pitch_scale_factor = hip_pitch_scale;
+	if( get_is_aiming() ) {
+		pitch_scale_factor = aim_pitch_scale;
+	}
+	AddControllerPitchInput(pitch * pitch_scale_factor);	
 }
 
 /******************************************************************************
@@ -197,8 +279,8 @@ void AShooterCharacter::fire_weapon()
 		}
 		if( beam_particles != nullptr ) {
 			/* This one I'm quite unsure of. It looks like the particle system has been designed in way so that we can
-				* set this "Target" parameter to the location the particles will travel to
-				*/
+			 * set this "Target" parameter to the location the particles will travel to
+			 */
 			UParticleSystemComponent* beam = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), beam_particles, socket_transform);
 			if( beam != nullptr ) {
 				beam->SetVectorParameter(FName("Target"), beam_end_point);
@@ -252,6 +334,10 @@ void AShooterCharacter::fire_weapon()
 		anim_instance->Montage_Play(hip_fire_montage);
 		anim_instance->Montage_JumpToSection(FName("StartFire"));
 	}
+
+	/* Start timer for scaling cross hairs while shooting
+	 */
+	start_crosshair_fire();
 }
 
 /******************************************************************************
@@ -270,9 +356,9 @@ bool AShooterCharacter::get_beam_end_location(const FVector& muzzle_socket_locat
 	}
 
 	/* Get screenspace location of cross hair (sadly, hard coded :()
-		*/
+	 */
 	FVector2D crosshair_location(viewport_size.X/2.0f, viewport_size.Y/2.0f);
-	crosshair_location.Y -= 50.0f;
+	crosshair_location.Y -= 50;
 
 	/* Transform 2D location into 3D world space location and direction
 		*/
@@ -320,6 +406,129 @@ bool AShooterCharacter::get_beam_end_location(const FVector& muzzle_socket_locat
 	}
 
 	return hit_something;
+}
+
+/******************************************************************************
+ * Called when pressing the aim button
+ */
+void AShooterCharacter::aim_button_pressed() {
+	is_aiming = true;
+}
+
+/******************************************************************************
+ * Called when releasing the aim button
+ */
+void AShooterCharacter::aim_button_released() {
+	is_aiming = false;
+}
+
+/******************************************************************************
+ */
+void AShooterCharacter::calculate_crosshair_spread(float delta_time) {
+	FVector2D walk_speed_range(0.0f, 600.0f);
+	FVector2D velocity_multiplier_range(0.0f, 1.0f);
+	FVector velocity = GetVelocity();
+	velocity.Z = 0.0f;
+
+	crosshair_velocity_factor = FMath::GetMappedRangeValueClamped(walk_speed_range, 
+																  velocity_multiplier_range,
+																  velocity.Size());
+	
+	if( GetCharacterMovement()->IsFalling() ) {
+		crosshair_in_air_factor = FMath::FInterpTo(crosshair_in_air_factor,
+												   2.25f,
+												   delta_time,
+												   2.25f);
+	}
+	else {
+		crosshair_in_air_factor = FMath::FInterpTo(crosshair_in_air_factor,
+												   0.0f,
+												   delta_time,
+												   30.0f);
+	}
+
+	if( get_is_aiming() ) {
+		crosshair_aim_factor = FMath::FInterpTo(crosshair_aim_factor,
+												0.5f,
+												delta_time,
+												camera_fov_interp_speed);
+	}
+	else {
+		crosshair_aim_factor = FMath::FInterpTo(crosshair_aim_factor,
+												1.0f,
+												delta_time,
+												camera_fov_interp_speed);
+	}
+
+	if( is_firing ) {
+		crosshair_shooting_factor = FMath::FInterpTo(crosshair_shooting_factor,
+													 0.3f,
+													 delta_time,
+													 60.0f);
+	}
+	else {
+		crosshair_shooting_factor = FMath::FInterpTo(crosshair_shooting_factor,
+													 0.0f,
+													 delta_time,
+													 60.0f);
+	}
+
+	crosshair_spread_multiplier = crosshair_aim_factor * (0.5f + 
+								  crosshair_velocity_factor +
+								  crosshair_in_air_factor +
+								  crosshair_shooting_factor);
+}
+
+/******************************************************************************
+ */
+void AShooterCharacter::start_crosshair_fire() {
+	is_firing = true;
+	GetWorldTimerManager().SetTimer(crosshair_shoot_timer,
+									this,
+									&AShooterCharacter::finish_crosshair_fire,
+									shoot_time_duration);
+									
+}
+
+/******************************************************************************
+ */
+void AShooterCharacter::finish_crosshair_fire() {
+	is_firing = false;
+}
+
+/******************************************************************************
+ */
+void AShooterCharacter::fire_button_pressed() {
+	b_fire_button_pressed = true;
+	start_fire_timer();
+}
+
+/******************************************************************************
+ */
+void AShooterCharacter::fire_button_released() {
+	b_fire_button_pressed = false;
+}
+
+/******************************************************************************
+ */
+void AShooterCharacter::start_fire_timer() {
+	if( should_fire ) {
+		fire_weapon();
+		should_fire = false;
+		GetWorldTimerManager().SetTimer(auto_fire_timer, 
+										this,
+										&AShooterCharacter::auto_fire_reset,
+										automatic_fire_rate);
+	}
+}
+
+/******************************************************************************
+ */
+void AShooterCharacter::auto_fire_reset() {
+	should_fire = true;
+	if( b_fire_button_pressed ) {
+		start_fire_timer();
+	}
 }
 
 /******************************************************************************/

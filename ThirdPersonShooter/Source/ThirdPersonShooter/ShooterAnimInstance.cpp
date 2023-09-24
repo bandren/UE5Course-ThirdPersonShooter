@@ -60,7 +60,9 @@ void UShooterAnimInstance::update_animation_properties(float delta_time) {
     movement_offset_yaw = UKismetMathLibrary::NormalizedDeltaRotator(movement_rotation, aim_rotation).Yaw;
     if( velocity_direction.Size() > 0.0f ) {
         last_movement_offset_yaw = movement_offset_yaw;
-    }
+    } 
+
+    is_aiming = shooter_character->get_is_aiming();
 
     FString movement_msg = FString::Printf(TEXT("offset yaw: %f"), movement_offset_yaw);
     if( GEngine != nullptr ) {

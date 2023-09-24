@@ -102,6 +102,11 @@ void EmptyLinkFunctionForGeneratedCodeShooterAnimInstance() {}
 		static const UECodeGen_Private::FMetaDataPairParam NewProp_last_movement_offset_yaw_MetaData[];
 #endif
 		static const UECodeGen_Private::FFloatPropertyParams NewProp_last_movement_offset_yaw;
+#if WITH_METADATA
+		static const UECodeGen_Private::FMetaDataPairParam NewProp_is_aiming_MetaData[];
+#endif
+		static void NewProp_is_aiming_SetBit(void* Obj);
+		static const UECodeGen_Private::FBoolPropertyParams NewProp_is_aiming;
 		static const UECodeGen_Private::FPropertyParamsBase* const PropPointers[];
 		static const FCppClassTypeInfoStatic StaticCppClassTypeInfo;
 		static const UECodeGen_Private::FClassParams ClassParams;
@@ -179,6 +184,18 @@ void EmptyLinkFunctionForGeneratedCodeShooterAnimInstance() {}
 	};
 #endif
 	const UECodeGen_Private::FFloatPropertyParams Z_Construct_UClass_UShooterAnimInstance_Statics::NewProp_last_movement_offset_yaw = { "last_movement_offset_yaw", nullptr, (EPropertyFlags)0x0040000000000005, UECodeGen_Private::EPropertyGenFlags::Float, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, STRUCT_OFFSET(UShooterAnimInstance, last_movement_offset_yaw), METADATA_PARAMS(Z_Construct_UClass_UShooterAnimInstance_Statics::NewProp_last_movement_offset_yaw_MetaData, UE_ARRAY_COUNT(Z_Construct_UClass_UShooterAnimInstance_Statics::NewProp_last_movement_offset_yaw_MetaData)) };
+#if WITH_METADATA
+	const UECodeGen_Private::FMetaDataPairParam Z_Construct_UClass_UShooterAnimInstance_Statics::NewProp_is_aiming_MetaData[] = {
+		{ "AllowPrivateAccess", "true" },
+		{ "Category", "Movement" },
+		{ "ModuleRelativePath", "ShooterAnimInstance.h" },
+	};
+#endif
+	void Z_Construct_UClass_UShooterAnimInstance_Statics::NewProp_is_aiming_SetBit(void* Obj)
+	{
+		((UShooterAnimInstance*)Obj)->is_aiming = 1;
+	}
+	const UECodeGen_Private::FBoolPropertyParams Z_Construct_UClass_UShooterAnimInstance_Statics::NewProp_is_aiming = { "is_aiming", nullptr, (EPropertyFlags)0x0040000000020015, UECodeGen_Private::EPropertyGenFlags::Bool | UECodeGen_Private::EPropertyGenFlags::NativeBool, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, sizeof(bool), sizeof(UShooterAnimInstance), &Z_Construct_UClass_UShooterAnimInstance_Statics::NewProp_is_aiming_SetBit, METADATA_PARAMS(Z_Construct_UClass_UShooterAnimInstance_Statics::NewProp_is_aiming_MetaData, UE_ARRAY_COUNT(Z_Construct_UClass_UShooterAnimInstance_Statics::NewProp_is_aiming_MetaData)) };
 	const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UClass_UShooterAnimInstance_Statics::PropPointers[] = {
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_UShooterAnimInstance_Statics::NewProp_shooter_character,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_UShooterAnimInstance_Statics::NewProp_speed,
@@ -186,6 +203,7 @@ void EmptyLinkFunctionForGeneratedCodeShooterAnimInstance() {}
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_UShooterAnimInstance_Statics::NewProp_is_accelerating,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_UShooterAnimInstance_Statics::NewProp_movement_offset_yaw,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_UShooterAnimInstance_Statics::NewProp_last_movement_offset_yaw,
+		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_UShooterAnimInstance_Statics::NewProp_is_aiming,
 	};
 	const FCppClassTypeInfoStatic Z_Construct_UClass_UShooterAnimInstance_Statics::StaticCppClassTypeInfo = {
 		TCppClassTypeTraits<UShooterAnimInstance>::IsAbstract,
@@ -225,9 +243,9 @@ void EmptyLinkFunctionForGeneratedCodeShooterAnimInstance() {}
 		static const FClassRegisterCompiledInInfo ClassInfo[];
 	};
 	const FClassRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Documents_UnrealEngineProjects_ThirdPersonShooter_ThirdPersonShooter_Source_ThirdPersonShooter_ShooterAnimInstance_h_Statics::ClassInfo[] = {
-		{ Z_Construct_UClass_UShooterAnimInstance, UShooterAnimInstance::StaticClass, TEXT("UShooterAnimInstance"), &Z_Registration_Info_UClass_UShooterAnimInstance, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(UShooterAnimInstance), 358063246U) },
+		{ Z_Construct_UClass_UShooterAnimInstance, UShooterAnimInstance::StaticClass, TEXT("UShooterAnimInstance"), &Z_Registration_Info_UClass_UShooterAnimInstance, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(UShooterAnimInstance), 2549021835U) },
 	};
-	static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Documents_UnrealEngineProjects_ThirdPersonShooter_ThirdPersonShooter_Source_ThirdPersonShooter_ShooterAnimInstance_h_1962664480(TEXT("/Script/ThirdPersonShooter"),
+	static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Documents_UnrealEngineProjects_ThirdPersonShooter_ThirdPersonShooter_Source_ThirdPersonShooter_ShooterAnimInstance_h_2876956562(TEXT("/Script/ThirdPersonShooter"),
 		Z_CompiledInDeferFile_FID_Documents_UnrealEngineProjects_ThirdPersonShooter_ThirdPersonShooter_Source_ThirdPersonShooter_ShooterAnimInstance_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Documents_UnrealEngineProjects_ThirdPersonShooter_ThirdPersonShooter_Source_ThirdPersonShooter_ShooterAnimInstance_h_Statics::ClassInfo),
 		nullptr, 0,
 		nullptr, 0);
